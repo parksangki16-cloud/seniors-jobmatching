@@ -48,8 +48,18 @@ export default function RegisterPage() {
       return;
     }
 
-    await supabase.rpc("recalculate_matches_for_senior", { p_senior_id: inserted.id });
+    const { error: rpcError } = await supabase.rpc("recalculate_matches_for_senior", {
+      p_senior_id: inserted.id,
+    });
     setLoading(false);
+
+    if (rpcError) {
+      setServerError(
+        "등록은 완료됐지만 매칭 계산 중 오류가 발생했습니다. 잠시 후 추천 페이지를 다시 확인해 주세요."
+      );
+      setRegisteredId(inserted.id);
+      return;
+    }
 
     setRegisteredId(inserted.id);
     setName("");

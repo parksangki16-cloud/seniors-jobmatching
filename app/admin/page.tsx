@@ -82,6 +82,7 @@ export default function AdminPage() {
   const [addError, setAddError] = useState("");
   const [addLoading, setAddLoading] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState("");
 
   /* ── 시니어·통계 상태 ── */
   const [seniors, setSeniors] = useState<SeniorRow[]>([]);
@@ -152,9 +153,18 @@ export default function AdminPage() {
       return;
     }
 
-    await supabase.rpc("recalculate_matches_for_job", { p_job_id: inserted.id });
+    const { error: rpcError } = await supabase.rpc("recalculate_matches_for_job", {
+      p_job_id: inserted.id,
+    });
     setAddLoading(false);
-    setAddSuccess(true);
+
+    if (rpcError) {
+      setAddError(
+        "일자리는 등록됐지만 매칭 계산 중 오류가 발생했습니다: " + rpcError.message
+      );
+    } else {
+      setAddSuccess(true);
+    }
     setForm(EMPTY_FORM);
     fetchJobs();
     fetchSeniors();
@@ -163,8 +173,13 @@ export default function AdminPage() {
   /* ── 일자리 삭제 ── */
   async function handleDeleteJob(id: string) {
     setDeletingId(id);
-    await supabase.from("jobs").delete().eq("id", id);
+    setDeleteError("");
+    const { error } = await supabase.from("jobs").delete().eq("id", id);
     setDeletingId(null);
+    if (error) {
+      setDeleteError("삭제 중 오류가 발생했습니다: " + error.message);
+      return;
+    }
     fetchJobs();
     fetchSeniors();
   }
@@ -381,6 +396,11 @@ export default function AdminPage() {
         </div>
 
         {/* 목록 */}
+        {deleteError && (
+          <div className="mb-4 bg-red-100 border-2 border-red-500 text-red-800 text-xl rounded-xl px-6 py-4">
+            {deleteError}
+          </div>
+        )}
         <div className="bg-white border-2 border-gray-200 rounded-2xl overflow-hidden">
           <div className="px-8 py-5 bg-gray-50 border-b-2 border-gray-200">
             <h3 className="text-2xl font-semibold text-gray-700">
