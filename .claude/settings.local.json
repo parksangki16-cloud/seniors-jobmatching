@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__sequential-thinking__sequentialthinking",
+      "mcp__supabase__list_organizations",
+      "mcp__supabase__get_cost",
+      "mcp__supabase__confirm_cost",
+      "mcp__supabase__create_project",
+      "mcp__supabase__list_projects",
+      "mcp__supabase__apply_migration",
+      "mcp__supabase__get_project_url",
+      "mcp__supabase__get_publishable_keys",
+      "PowerShell(npm install *)",
+      "Bash(mkdir -p \"C:/Users/박상기/OneDrive/바탕 화면/seniors-jobmatching/lib\")",
+      "Bash(mkdir -p \"C:/Users/박상기/OneDrive/바탕 화면/seniors-jobmatching/app/register\")",
+      "Bash(mkdir -p \"C:/Users/박상기/OneDrive/바탕 화면/seniors-jobmatching/app/recommendations\")",
+      "Bash(mkdir -p \"C:/Users/박상기/OneDrive/바탕 화면/seniors-jobmatching/app/admin\")",
+      "PowerShell(Start-Process -FilePath \"npm\" -ArgumentList \"run\",\"dev\" -WorkingDirectory \"C:\\\\Users\\\\�ڻ��\\\\OneDrive\\\\���� ȭ��\\\\seniors-jobmatching\" -WindowStyle Hidden)",
+      "mcp__playwright__browser_navigate"
+    ]
+  }
+}
