@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 
 const REGIONS = ["서울", "경기", "인천", "기타"];
@@ -18,43 +19,43 @@ export default function RegisterPage() {
   const [desiredJob, setDesiredJob] = useState("");
   const [careerYears, setCareerYears] = useState(0);
   const [errors, setErrors] = useState<FormErrors>({});
-  const [success, setSuccess] = useState(false);
+  const [registeredId, setRegisteredId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [serverError, setServerError] = useState("");
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setSuccess(false);
+    setRegisteredId(null);
     setServerError("");
 
     const next: FormErrors = {};
     if (!name.trim()) next.name = "이름을 입력해 주세요.";
     if (!region) next.region = "지역을 선택해 주세요.";
     if (!desiredJob) next.desired_job = "희망 직종을 선택해 주세요.";
-    if (Object.keys(next).length > 0) {
-      setErrors(next);
-      return;
-    }
+    if (Object.keys(next).length > 0) { setErrors(next); return; }
     setErrors({});
 
     setLoading(true);
-    const { error } = await supabase.from("seniors").insert({
-      name: name.trim(),
-      region,
-      desired_job: desiredJob,
-      career_years: careerYears,
-    });
-    setLoading(false);
+    const { data: inserted, error } = await supabase
+      .from("seniors")
+      .insert({ name: name.trim(), region, desired_job: desiredJob, career_years: careerYears })
+      .select("id")
+      .single();
 
     if (error) {
       setServerError("저장 중 오류가 발생했습니다: " + error.message);
-    } else {
-      setSuccess(true);
-      setName("");
-      setRegion("");
-      setDesiredJob("");
-      setCareerYears(0);
+      setLoading(false);
+      return;
     }
+
+    await supabase.rpc("recalculate_matches_for_senior", { p_senior_id: inserted.id });
+    setLoading(false);
+
+    setRegisteredId(inserted.id);
+    setName("");
+    setRegion("");
+    setDesiredJob("");
+    setCareerYears(0);
   }
 
   return (
@@ -64,9 +65,15 @@ export default function RegisterPage() {
         이름, 지역, 희망 직종, 경력을 입력하면 맞는 일자리를 찾아드립니다.
       </p>
 
-      {success && (
-        <div className="mb-8 bg-green-100 border-2 border-green-500 text-green-800 text-2xl font-semibold rounded-xl px-6 py-4">
-          등록이 완료되었습니다 ✓
+      {registeredId && (
+        <div className="mb-8 bg-green-100 border-2 border-green-500 text-green-800 rounded-xl px-6 py-5">
+          <p className="text-2xl font-semibold mb-3">등록이 완료되었습니다 ✓</p>
+          <Link
+            href={`/recommendations?senior_id=${registeredId}`}
+            className="inline-block bg-green-600 hover:bg-green-700 text-white text-xl font-bold px-6 py-3 rounded-xl transition-colors"
+          >
+            내 추천 일자리 보기 →
+          </Link>
         </div>
       )}
       {serverError && (
@@ -115,9 +122,7 @@ export default function RegisterPage() {
             }`}
           >
             <option value="">선택해 주세요</option>
-            {REGIONS.map((r) => (
-              <option key={r} value={r}>{r}</option>
-            ))}
+            {REGIONS.map((r) => <option key={r} value={r}>{r}</option>)}
           </select>
         </div>
 
@@ -139,17 +144,13 @@ export default function RegisterPage() {
             }`}
           >
             <option value="">선택해 주세요</option>
-            {JOB_TYPES.map((j) => (
-              <option key={j} value={j}>{j}</option>
-            ))}
+            {JOB_TYPES.map((j) => <option key={j} value={j}>{j}</option>)}
           </select>
         </div>
 
         {/* 경력 */}
         <div>
-          <label className="block text-2xl font-semibold text-gray-800 mb-2">
-            경력 (년)
-          </label>
+          <label className="block text-2xl font-semibold text-gray-800 mb-2">경력 (년)</label>
           <input
             type="number"
             min={0}
@@ -164,7 +165,7 @@ export default function RegisterPage() {
           disabled={loading}
           className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-2xl font-bold py-5 rounded-xl transition-colors"
         >
-          {loading ? "저장 중..." : "등록하기"}
+          {loading ? "등록 중..." : "등록하기"}
         </button>
       </form>
     </div>
