@@ -1,11 +1,21 @@
-import { supabase } from "@/lib/supabase";
+"use client";
+
+import { Suspense, useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { supabase } from "@/lib/supabase";
 
 interface MatchRow {
   id: string;
   score: number;
   status: string;
   jobs: { title: string; region: string; job_type: string } | null;
+}
+
+interface Senior {
+  name: string;
+  region: string;
+  desired_job: string;
 }
 
 function ScoreBadge({ score }: { score: number }) {
@@ -28,17 +38,46 @@ function ScoreBadge({ score }: { score: number }) {
   );
 }
 
-export default async function RecommendationsPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ senior_id?: string }>;
-}) {
-  const { senior_id } = await searchParams;
+function RecommendationsContent() {
+  const searchParams = useSearchParams();
+  const seniorId = searchParams.get("senior_id");
 
-  if (!senior_id) {
+  const [senior, setSenior] = useState<Senior | null>(null);
+  const [matches, setMatches] = useState<MatchRow[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!seniorId) {
+      setLoading(false);
+      return;
+    }
+
+    async function fetchData() {
+      setLoading(true);
+      const [{ data: seniorData }, { data: matchData }] = await Promise.all([
+        supabase
+          .from("seniors")
+          .select("name, region, desired_job")
+          .eq("id", seniorId!)
+          .single(),
+        supabase
+          .from("matches")
+          .select("id, score, status, jobs(title, region, job_type)")
+          .eq("senior_id", seniorId!)
+          .gt("score", 0)
+          .order("score", { ascending: false }),
+      ]);
+      if (seniorData) setSenior(seniorData);
+      if (matchData) setMatches(matchData as unknown as MatchRow[]);
+      setLoading(false);
+    }
+
+    fetchData();
+  }, [seniorId]);
+
+  if (!seniorId) {
     return (
-      <div className="max-w-3xl mx-auto px-6 py-12">
-        <h1 className="text-4xl font-bold text-gray-900 mb-6">추천 일자리</h1>
+      <>
         <div className="bg-yellow-50 border-2 border-yellow-400 text-yellow-800 text-xl rounded-xl px-6 py-5">
           시니어 ID가 없습니다.{" "}
           <code className="bg-yellow-100 px-2 py-0.5 rounded text-lg">
@@ -51,29 +90,16 @@ export default async function RecommendationsPage({
             ← 프로필 등록하러 가기
           </Link>
         </div>
-      </div>
+      </>
     );
   }
 
-  const [{ data: senior }, { data: rawMatches }] = await Promise.all([
-    supabase
-      .from("seniors")
-      .select("name, region, desired_job")
-      .eq("id", senior_id)
-      .single(),
-    supabase
-      .from("matches")
-      .select("id, score, status, jobs(title, region, job_type)")
-      .eq("senior_id", senior_id)
-      .gt("score", 0)
-      .order("score", { ascending: false }),
-  ]);
-
-  const matches = (rawMatches ?? []) as unknown as MatchRow[];
+  if (loading) {
+    return <p className="text-xl text-gray-400 mt-10">불러오는 중...</p>;
+  }
 
   return (
-    <div className="max-w-3xl mx-auto px-6 py-12">
-      <h1 className="text-4xl font-bold text-gray-900 mb-2">추천 일자리</h1>
+    <>
       {senior ? (
         <p className="text-xl text-gray-500 mb-10">
           <span className="font-semibold text-gray-800">{senior.name}</span>님 (
@@ -116,6 +142,17 @@ export default async function RecommendationsPage({
           ← 프로필 수정하러 가기
         </Link>
       </div>
+    </>
+  );
+}
+
+export default function RecommendationsPage() {
+  return (
+    <div className="max-w-3xl mx-auto px-6 py-12">
+      <h1 className="text-4xl font-bold text-gray-900 mb-2">추천 일자리</h1>
+      <Suspense fallback={<p className="text-xl text-gray-400 mt-10">불러오는 중...</p>}>
+        <RecommendationsContent />
+      </Suspense>
     </div>
   );
 }
