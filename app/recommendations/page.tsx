@@ -45,10 +45,19 @@ function RecommendationsContent() {
   const [senior, setSenior] = useState<Senior | null>(null);
   const [matches, setMatches] = useState<MatchRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [allSeniors, setAllSeniors] = useState<(Senior & { id: string })[]>([]);
 
   useEffect(() => {
     if (!seniorId) {
-      setLoading(false);
+      // senior_id 없으면 전체 시니어 목록 조회
+      supabase
+        .from("seniors")
+        .select("id, name, region, desired_job")
+        .order("created_at", { ascending: false })
+        .then(({ data }) => {
+          if (data) setAllSeniors(data);
+          setLoading(false);
+        });
       return;
     }
 
@@ -75,27 +84,50 @@ function RecommendationsContent() {
     fetchData();
   }, [seniorId]);
 
+  if (loading) {
+    return <p className="text-xl text-gray-400 mt-10">불러오는 중...</p>;
+  }
+
+  // senior_id 없음 → 시니어 선택 목록
   if (!seniorId) {
     return (
       <>
-        <div className="bg-yellow-50 border-2 border-yellow-400 text-yellow-800 text-xl rounded-xl px-6 py-5">
-          시니어 ID가 없습니다.{" "}
-          <code className="bg-yellow-100 px-2 py-0.5 rounded text-lg">
-            /recommendations?senior_id=...
-          </code>{" "}
-          형태로 접근해 주세요.
-        </div>
-        <div className="mt-6">
+        <p className="text-xl text-gray-500 mb-8">
+          추천 일자리를 확인할 시니어를 선택하세요.
+        </p>
+        {allSeniors.length === 0 ? (
+          <div className="bg-yellow-50 border-2 border-yellow-400 text-yellow-800 text-xl rounded-xl px-6 py-5">
+            등록된 시니어가 없습니다.
+          </div>
+        ) : (
+          <ul className="space-y-4">
+            {allSeniors.map((s) => (
+              <li key={s.id}>
+                <Link
+                  href={`/recommendations?senior_id=${s.id}`}
+                  className="flex items-center justify-between bg-white border-2 border-gray-200 hover:border-blue-400 rounded-2xl px-8 py-6 transition-colors"
+                >
+                  <div>
+                    <p className="text-2xl font-bold text-gray-800">{s.name}</p>
+                    <p className="text-lg text-gray-500 mt-1">
+                      {s.region} · {s.desired_job}
+                    </p>
+                  </div>
+                  <span className="text-xl text-blue-600 font-semibold whitespace-nowrap">
+                    추천 보기 →
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+        <div className="mt-8">
           <Link href="/register" className="text-xl text-blue-600 underline underline-offset-4">
             ← 프로필 등록하러 가기
           </Link>
         </div>
       </>
     );
-  }
-
-  if (loading) {
-    return <p className="text-xl text-gray-400 mt-10">불러오는 중...</p>;
   }
 
   return (
@@ -134,12 +166,18 @@ function RecommendationsContent() {
         </ul>
       )}
 
-      <div className="mt-10">
+      <div className="mt-10 flex gap-6">
+        <Link
+          href="/recommendations"
+          className="text-xl text-blue-600 underline underline-offset-4 hover:text-blue-800"
+        >
+          ← 시니어 목록으로
+        </Link>
         <Link
           href="/register"
           className="text-xl text-blue-600 underline underline-offset-4 hover:text-blue-800"
         >
-          ← 프로필 수정하러 가기
+          프로필 수정하러 가기
         </Link>
       </div>
     </>
