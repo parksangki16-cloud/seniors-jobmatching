@@ -70,14 +70,15 @@ export default function RegisterPage() {
 
   return (
     <div className="max-w-2xl mx-auto px-6 py-12">
-      <h1 className="text-4xl font-bold text-gray-900 mb-2">프로필 등록</h1>
+      <h1 className="text-4xl font-bold text-gray-900 mb-2">시니어 일자리 신청하기</h1>
       <p className="text-xl text-gray-500 mb-10">
-        이름, 지역, 희망 직종, 경력을 입력하면 맞는 일자리를 찾아드립니다.
+        이름, 지역, 희망 직종, 경력을 알려주시면 맞는 일자리를 찾아드립니다.
       </p>
 
       {registeredId && (
         <div className="mb-8 bg-green-100 border-2 border-green-500 text-green-800 rounded-xl px-6 py-5">
-          <p className="text-2xl font-semibold mb-3">등록이 완료되었습니다 ✓</p>
+          <p className="text-2xl font-semibold mb-1">등록이 완료되었습니다.</p>
+          <p className="text-xl mb-4">담당자가 곧 연락드립니다.</p>
           <Link
             href={`/recommendations?senior_id=${registeredId}`}
             className="inline-block bg-green-600 hover:bg-green-700 text-white text-xl font-bold px-6 py-3 rounded-xl transition-colors"
@@ -95,9 +96,10 @@ export default function RegisterPage() {
       <form onSubmit={handleSubmit} noValidate className="space-y-8">
         {/* 이름 */}
         <div>
-          <label className="block text-2xl font-semibold text-gray-800 mb-2">
+          <label className="block text-2xl font-semibold text-gray-800 mb-1">
             이름 <span className="text-red-500">*</span>
           </label>
+          <p className="text-lg text-gray-500 mb-2">본인 성함을 적어 주세요.</p>
           {errors.name && (
             <div className="mb-2 bg-red-50 border border-red-400 text-red-700 text-lg rounded-lg px-4 py-2">
               {errors.name}
@@ -116,9 +118,10 @@ export default function RegisterPage() {
 
         {/* 지역 */}
         <div>
-          <label className="block text-2xl font-semibold text-gray-800 mb-2">
+          <label className="block text-2xl font-semibold text-gray-800 mb-1">
             지역 <span className="text-red-500">*</span>
           </label>
+          <p className="text-lg text-gray-500 mb-2">어디에서 일하고 싶으세요?</p>
           {errors.region && (
             <div className="mb-2 bg-red-50 border border-red-400 text-red-700 text-lg rounded-lg px-4 py-2">
               {errors.region}
@@ -138,9 +141,10 @@ export default function RegisterPage() {
 
         {/* 희망 직종 */}
         <div>
-          <label className="block text-2xl font-semibold text-gray-800 mb-2">
+          <label className="block text-2xl font-semibold text-gray-800 mb-1">
             희망 직종 <span className="text-red-500">*</span>
           </label>
+          <p className="text-lg text-gray-500 mb-2">어떤 일을 하고 싶으세요?</p>
           {errors.desired_job && (
             <div className="mb-2 bg-red-50 border border-red-400 text-red-700 text-lg rounded-lg px-4 py-2">
               {errors.desired_job}
@@ -160,7 +164,8 @@ export default function RegisterPage() {
 
         {/* 경력 */}
         <div>
-          <label className="block text-2xl font-semibold text-gray-800 mb-2">경력 (년)</label>
+          <label className="block text-2xl font-semibold text-gray-800 mb-1">경력 (년)</label>
+          <p className="text-lg text-gray-500 mb-2">일하신 경험이 몇 년이나 되시나요?</p>
           <input
             type="number"
             min={0}

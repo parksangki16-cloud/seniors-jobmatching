@@ -22,18 +22,18 @@ function ScoreBadge({ score }: { score: number }) {
   if (score === 6)
     return (
       <span className="inline-block bg-yellow-400 text-yellow-900 font-bold text-xl px-5 py-1.5 rounded-full whitespace-nowrap">
-        ⭐ {score}점
+        ⭐ {score}점 · 매우 적합
       </span>
     );
   if (score >= 4)
     return (
       <span className="inline-block bg-green-500 text-white font-bold text-xl px-5 py-1.5 rounded-full whitespace-nowrap">
-        ✓ {score}점
+        ✓ {score}점 · 적합
       </span>
     );
   return (
     <span className="inline-block bg-gray-300 text-gray-700 font-bold text-xl px-5 py-1.5 rounded-full whitespace-nowrap">
-      {score}점
+      {score}점 · 보통
     </span>
   );
 }
@@ -92,6 +92,7 @@ function RecommendationsContent() {
   if (!seniorId) {
     return (
       <>
+        <h1 className="text-4xl font-bold text-gray-900 mb-2">추천 일자리</h1>
         <p className="text-xl text-gray-500 mb-8">
           추천 일자리를 확인할 시니어를 선택하세요.
         </p>
@@ -132,6 +133,9 @@ function RecommendationsContent() {
 
   return (
     <>
+      <h1 className="text-4xl font-bold text-gray-900 mb-2">
+        {senior ? `${senior.name} 님께 맞는 일자리` : "추천 일자리"}
+      </h1>
       {senior ? (
         <p className="text-xl text-gray-500 mb-10">
           <span className="font-semibold text-gray-800">{senior.name}</span>님 (
@@ -142,8 +146,9 @@ function RecommendationsContent() {
       )}
 
       {matches.length === 0 ? (
-        <div className="bg-yellow-50 border-2 border-yellow-400 text-yellow-800 text-2xl font-semibold rounded-xl px-6 py-6">
-          현재 매칭되는 일자리가 없습니다.
+        <div className="bg-yellow-50 border-2 border-yellow-400 text-yellow-800 rounded-xl px-6 py-6">
+          <p className="text-2xl font-semibold">현재 매칭되는 일자리가 없습니다.</p>
+          <p className="text-xl mt-2">담당자가 직접 연락드리니 잠시만 기다려 주세요.</p>
         </div>
       ) : (
         <ul className="space-y-4">
@@ -187,8 +192,12 @@ function RecommendationsContent() {
 export default function RecommendationsPage() {
   return (
     <div className="max-w-3xl mx-auto px-6 py-12">
-      <h1 className="text-4xl font-bold text-gray-900 mb-2">추천 일자리</h1>
-      <Suspense fallback={<p className="text-xl text-gray-400 mt-10">불러오는 중...</p>}>
+      <Suspense fallback={
+        <>
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">추천 일자리</h1>
+          <p className="text-xl text-gray-400 mt-10">불러오는 중...</p>
+        </>
+      }>
         <RecommendationsContent />
       </Suspense>
     </div>
